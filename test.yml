@@ -1,0 +1,267 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Social Network System Design API
+  description: API для базового функционала социальной сети
+  
+servers:
+  - url: http://localhost:8080/api/v1
+
+paths:
+
+  # 1. ДОБАВЛЕНИЕ ДРУЗЕЙ
+  /users/{userId}/friends:
+    post:
+      summary: Добавить пользователя в друзья
+      tags:
+        - Friends
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: Ваш ID (кто добавляет)
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                friendId:
+                  type: integer
+                  description: ID пользователя, которого мы хотим добавить
+      responses:
+        '201':
+          description: Пользователь успешно добавлен в друзья
+        '400':
+          description: Неверные данные запроса (например, попытка добавить самого себя)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Пользователь не найден (указан неверный ID)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # 2. ПРОСМОТР АНКЕТЫ ПОЛЬЗОВАТЕЛЯ
+  /users/{userId}:
+    get:
+      summary: Получить профиль пользователя
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID пользователя, чью анкету смотрим
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный ответ с данными пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  username:
+                    type: string
+                  about:
+                    type: string
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # 3. ПУБЛИКАЦИЯ ПОСТА В ЛЕНТУ
+  /posts:
+    post:
+      summary: Опубликовать новый пост
+      tags:
+        - Posts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authorId:
+                  type: integer
+                content:
+                  type: string
+      responses:
+        '201':
+          description: Пост успешно создан
+        '400':
+          description: Ошибка валидации (например, пустой текст поста)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера (база данных недоступна)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # 4. ПРОСМОТР ДРУЗЕЙ ПОЛЬЗОВАТЕЛЯ
+  /users/{userId}/friends/:
+    get:
+      summary: Получить список друзей пользователя
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: список ID пользователей в друзьях
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный ответ с данными пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  username:
+                    type: string
+                  about:
+                    type: string
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # 5. ПРОСМОТР ЛЕНТЫ СВОИХ ПОСТОВ  
+  /users/{userId}/publications/{userId}:
+   get:
+    summary: Получить список постов своих
+    tags:
+      - Publications
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        description: список ID постов в ленте
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Успешный ответ с данными пользователя
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                username:
+                  type: string
+                about:
+                  type: string
+      '404':
+        description: Постов не найдено
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+  # 6. ПРОСМОТР ЛЕНТЫ ВСЕХ ПОСТОВ  
+  /users/{userId}/publications:
+   get:
+    summary: Получить список постов из ленты
+    tags:
+      - Publications
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        description: список ID постов в ленте
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Успешный ответ с данными пользователя
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                username:
+                  type: string
+                about:
+                  type: string
+      '404':
+        description: Постов не найдено
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'             
+  # 7. УДАЛЕНИЕ ПОСТА ИЗ ЛЕНТЫ
+  /publications/{publicationId}:
+   delete:
+    summary: Удалить свою публикацию
+    tags:
+      - Publications
+    parameters:
+      - name: publicationId
+        in: path
+        required: true
+        description: ID удаляемого поста
+        schema:
+          type: integer
+    responses:
+      '204':
+        description: Успешный ответ при удалении поста
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                username:
+                  type: string
+                about:
+                  type: string
+      '404':
+        description: Постов не найдено
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+
+# ==========================================
+# ПЕРЕИСПУЛЬЗУЕМЫЕ КОМПОНЕНТЫ
+# ==========================================
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: HTTP код ошибки или внутренний код бизнес-логики
+          example: 404
+        message:
+          type: string
+          description: Человекочитаемое описание ошибки
+          example: "User not found"
